@@ -10,6 +10,17 @@ Nimiq Pay Mini App concept for learning core DJ skills through flexible, calm, s
 - Nimiq Pay wallet connection surface
 - Reward UI prepared for a future, server-backed NIM reward pool
 
+## Use with RekordBridge Studio on Windows
+
+Open **DJ Companion** from RekordBridge Studio after selecting a controller and
+starting either **Test input** or **Start bridge**. RekordBridge serves this
+same UI locally and exposes only controller connection status, the selected
+profile name, and the latest mapped action. The Companion never receives MIDI
+port handles, virtual-port credentials, or wallet data.
+
+When the Companion is opened normally from a static host, it remains fully
+usable in touch mode and simply shows no controller status.
+
 The reward pool is intentionally not implemented in the frontend: sending real NIM requires a funded server-side wallet and anti-abuse rules. No API key belongs in this app's source.
 
 ## Run locally
