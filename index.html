@@ -2,55 +2,39 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#151719" />
-    <title>CueCraft — DJ Basics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#11131a" />
+    <meta name="description" content="CueCraft is a calm, offline-ready DJ practice companion and local touchscreen controller." />
+    <title>CueCraft — DJ practice and controller</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#home" aria-label="CueCraft home">Cue<span>Craft</span> <small>DJ basics</small></a>
-        <div class="wallet"><span id="wallet-status">Wallet not connected</span><button id="wallet-button" class="button button-quiet">Connect wallet</button><button id="sync-button" class="button button-quiet" disabled>Sync CueCraft</button></div>
+        <a class="brand" href="#home" aria-label="CueCraft home">Cue<span>Craft</span> <small>DJ practice</small></a>
+        <div class="header-actions"><span id="connection-state" class="connection-state offline" aria-live="polite">Offline practice</span><button id="lock-button" class="button button-quiet" aria-pressed="false" title="Lock controller screen">🔓 Screen lock</button></div>
       </header>
-
       <section id="home" class="home-view">
-        <p class="eyebrow">Cue with confidence · no Sync</p>
-        <h1>Learn to cue.<br /><em>Make clean transitions.</em></h1>
-        <p class="intro">Short, calm practice challenges for controller, CDJ, vinyl, or touch. Learn the core skills that make every mix work.</p>
-        <div class="hero-actions"><button id="start-practice" class="button button-main">Start practicing</button><button id="setup-button" class="text-button">Set up my controller</button></div>
-        <p id="bridge-status" class="bridge-status">Touch mode is ready. Open this from RekordBridge Studio to connect a controller.</p>
-
-        <section class="review-card" aria-labelledby="review-title"><p class="eyebrow teal">September 23 checkpoint</p><h2 id="review-title">Confirm your set</h2><p>Anything before today becomes a review: revisit the skills you need, then confirm you are ready to mix a short set.</p><button class="text-button launch-lesson" data-lesson="perform">Start my set check</button></section>
-        <section class="now-card" aria-labelledby="next-lesson-title">
-          <div class="lesson-number">08</div>
-          <div><p class="eyebrow gold">Suggested next</p><h2 id="next-lesson-title">Beatmatch with tempo</h2><p>Match two tracks by ear. Use tempo and nudge—never Sync.</p></div>
-          <button class="button button-main launch-lesson" data-lesson="beatmatch">Practice · 12 min</button>
-        </section>
-
-        <section class="skills" aria-label="Choose a DJ skill">
-          <button class="skill blue launch-lesson" data-lesson="prepare"><span>01</span><strong>Prepare</strong><small>Load tracks, memory cues, hot cues</small></button>
-          <button class="skill teal launch-lesson" data-lesson="listen"><span>02</span><strong>Listen</strong><small>Headphones, master cue, phrasing</small></button>
-          <button class="skill gold launch-lesson" data-lesson="beatmatch"><span>03</span><strong>Mix</strong><small>Tempo, jog, faders, EQ</small></button>
-          <button class="skill pink launch-lesson" data-lesson="perform"><span>04</span><strong>Perform</strong><small>Transitions, loops, optional FX</small></button>
-        </section>
+        <p class="eyebrow">Cue with confidence · no Sync</p><h1>Learn to cue.<br /><em>Make clean transitions.</em></h1><p class="intro">Short, calm practice challenges for controller, CDJ, vinyl, or touch. Learn the core skills that make every mix work.</p>
+        <div class="hero-actions"><button id="start-practice" class="button button-main">Start practicing</button><button id="open-pairing" class="button button-quiet">Pair local controller</button></div>
+        <section class="now-card" aria-labelledby="next-lesson-title"><div class="lesson-number">03</div><div><p class="eyebrow gold">Suggested next</p><h2 id="next-lesson-title">Beatmatch with tempo</h2><p>Match two tracks by ear. Use tempo and nudge—never Sync.</p></div><button class="button button-main launch-lesson" data-lesson="beatmatch">Practice · 12 min</button></section>
+        <section class="skills" aria-label="Choose a DJ skill"><button class="skill blue launch-lesson" data-lesson="prepare"><span>01</span><strong>Prepare</strong><small>Load tracks, memory cues, hot cues</small></button><button class="skill teal launch-lesson" data-lesson="listen"><span>02</span><strong>Listen</strong><small>Headphones, master cue, phrasing</small></button><button class="skill gold launch-lesson" data-lesson="beatmatch"><span>03</span><strong>Mix</strong><small>Tempo, jog, faders, EQ</small></button><button class="skill pink launch-lesson" data-lesson="perform"><span>04</span><strong>Perform</strong><small>Transitions, loops, optional FX</small></button></section>
       </section>
-
       <section id="lesson-view" class="lesson-view" hidden>
-        <button id="leave-lesson" class="back-button">← All skills</button>
-        <p id="lesson-label" class="eyebrow gold">Mix · 12 minutes</p>
-        <h1 id="lesson-title">Beatmatch with tempo</h1>
-        <p id="lesson-instruction" class="intro"></p>
+        <button id="leave-lesson" class="back-button">← All skills</button><p id="lesson-label" class="eyebrow gold">Mix · 12 minutes</p><h1 id="lesson-title">Beatmatch with tempo</h1><p id="lesson-instruction" class="intro"></p>
         <div class="practice-layout">
-          <section class="task-card"><h2>Your task</h2><ol id="task-list"></ol><div class="timer-row"><strong id="timer">12:00</strong><button id="timer-button" class="button button-main">Start timer</button></div><label class="check-row"><input id="task-complete" type="checkbox" /> I finished this practice</label><button id="complete-button" class="button button-main" disabled>Complete challenge · earn 1 NIM</button><p id="completion-note" class="muted">Connect a wallet to claim NIM rewards. Your progress is always saved on this device.</p></section>
-          <section class="touch-decks" aria-label="Touch DJ controls"><h2>Touch controls</h2><p class="muted">Use these while practicing, or connect a controller.</p><div class="deck-row"><article class="deck"><h3>Deck A</h3><button class="platter" data-control="Deck A jog">Nudge</button><div class="deck-buttons"><button data-control="Deck A play">Play</button><button data-control="Deck A cue">Cue</button></div><label>Tempo <input class="tempo" type="range" min="-8" max="8" value="0" aria-label="Deck A tempo" /></label></article><article class="deck"><h3>Deck B</h3><button class="platter" data-control="Deck B jog">Nudge</button><div class="deck-buttons"><button data-control="Deck B play">Play</button><button data-control="Deck B cue">Cue</button></div><label>Tempo <input class="tempo" type="range" min="-8" max="8" value="0" aria-label="Deck B tempo" /></label></article></div><div class="mixer"><label>Channel A <input type="range" min="0" max="100" value="70" aria-label="Channel A volume" /></label><label>Crossfader <input type="range" min="0" max="100" value="50" aria-label="Crossfader" /></label><label>Channel B <input type="range" min="0" max="100" value="70" aria-label="Channel B volume" /></label></div><div class="headphones"><button data-control="Headphone cue">Headphone cue</button><button data-control="Master cue">Master cue</button></div><p id="control-feedback" class="control-feedback" aria-live="polite">Ready when you are.</p></section>
+          <section class="task-card"><h2>Your task</h2><ol id="task-list"></ol><div class="timer-row"><strong id="timer">12:00</strong><button id="timer-button" class="button button-main">Start timer</button></div><label class="check-row"><input id="task-complete" type="checkbox" /> I finished this practice</label><button id="complete-button" class="button button-main" disabled>Save completed practice</button><p id="completion-note" class="muted">Progress is saved privately on this device.</p><button id="sync-progress" class="text-button">Optional: send progress to my service</button></section>
+          <section class="touch-decks controller-surface" aria-label="CueCraft touchscreen DJ controller"><div class="controller-heading"><div><p class="eyebrow teal">CueCraft touchscreen controller</p><h2>Two decks · local session</h2></div><span id="latency" class="latency">Not paired</span></div><p class="muted">Audio stays in your DJ software. CueCraft only sends control commands when paired.</p><div class="deck-row"><article class="deck"><h3>Deck 1</h3><button class="platter control" data-command="deck1.jog" aria-label="Deck 1 jog">Nudge</button><div class="deck-buttons"><button class="control" data-command="deck1.play">Play</button><button class="control" data-command="deck1.cue">Cue</button></div><label>Tempo <input class="continuous" data-command="deck1.tempo" type="range" min="-100" max="100" value="0" aria-label="Deck 1 tempo" /></label></article><article class="deck"><h3>Deck 2</h3><button class="platter control" data-command="deck2.jog" aria-label="Deck 2 jog">Nudge</button><div class="deck-buttons"><button class="control" data-command="deck2.play">Play</button><button class="control" data-command="deck2.cue">Cue</button></div><label>Tempo <input class="continuous" data-command="deck2.tempo" type="range" min="-100" max="100" value="0" aria-label="Deck 2 tempo" /></label></article></div><div class="mixer"><label>Channel 1 <input class="local-only" type="range" min="0" max="100" value="70" aria-label="Channel 1 volume" /></label><label>Crossfader <input class="continuous" data-command="mixer.crossfader" type="range" min="-100" max="100" value="0" aria-label="Crossfader" /></label><label>Channel 2 <input class="local-only" type="range" min="0" max="100" value="70" aria-label="Channel 2 volume" /></label></div><div class="headphones"><button class="control" data-command="deck1.cue">Headphone cue 1</button><button class="control" data-command="deck2.cue">Headphone cue 2</button><button class="local-only">Master cue</button></div><p id="control-feedback" class="control-feedback" aria-live="polite">Pair a local session to control DJ software. Touch controls still help you rehearse offline.</p></section>
         </div>
         <section class="coach" aria-labelledby="coach-title"><div><p class="eyebrow teal">Lesson coach</p><h2 id="coach-title">Ask about this lesson</h2><p class="muted">Try: “How do I know which way to move tempo?”</p></div><div class="chat-row"><input id="coach-input" type="text" placeholder="Ask your DJ question" aria-label="Ask your DJ lesson question" /><button id="coach-send" class="button button-main">Ask</button></div><p id="coach-response" class="coach-response" aria-live="polite">I’ll keep the answer short and tied to what you are practicing.</p></section>
       </section>
-
-      <section id="setup-view" class="setup-view" hidden><button id="leave-setup" class="back-button">← Back</button><p class="eyebrow teal">Basic controller setup</p><h1>Map only what you need.</h1><p class="intro">One control at a time. You can use touch controls for anything your gear does not have.</p><div id="setup-step" class="setup-card"></div><button id="setup-next" class="button button-main">I found it</button><p class="muted">This first web version guides setup. Live MIDI capture is the next RekordBridge integration.</p></section>
-
-      <footer><span id="progress-summary">0 challenges complete</span><span>Progress stays private until you choose to share it.</span></footer>
+      <section id="pairing-view" class="pairing-view" hidden>
+        <button id="leave-pairing" class="back-button">← Back</button><p class="eyebrow teal">Local controller pairing</p><h1>Pair CueCraft.<br /><em>Keep audio where it is.</em></h1><p class="intro">Enter the temporary code shown by your DJ bridge. A QR code may open this page with these fields filled in automatically.</p>
+        <form id="pairing-form" class="pairing-card"><label>Bridge address <input id="bridge-address" inputmode="url" autocomplete="url" placeholder="ws://192.168.1.20:8765/cuecraft" required /></label><label>Temporary session code <input id="session-code" inputmode="text" autocomplete="one-time-code" maxlength="12" placeholder="ABC123" required /></label><button class="button button-main" type="submit">Pair CueCraft controller</button><button id="disconnect-button" class="button button-quiet" type="button">Disconnect</button><p id="pairing-note" class="muted">CueCraft identifies itself to the bridge as a touchscreen controller. No account is needed.</p></form>
+        <section class="setup-card"><p class="eyebrow gold">What pairs</p><h2>Commands, not music.</h2><p class="muted">CueCraft sends versioned play, cue, tempo, jog, and crossfader commands over your local network. The bridge chooses how to use them. CueCraft never handles audio routing, MIDI ports, or controller mappings.</p></section>
+      </section>
+      <footer><span id="progress-summary">0 practices complete</span><span>Downloaded lessons and touch practice work offline.</span></footer>
     </main>
     <script type="module" src="./app.js"></script>
   </body>

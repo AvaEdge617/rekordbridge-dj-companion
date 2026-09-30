@@ -1,0 +1,1 @@
+{"private":true,"type":"module","scripts":{"test":"node --test test/protocol.test.mjs","check":"node --check app.js && node --check protocol.js && node --check service-worker.js"}}
