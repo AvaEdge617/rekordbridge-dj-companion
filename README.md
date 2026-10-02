@@ -1,6 +1,20 @@
 # CueCraft
 
-CueCraft is an independent browser/PWA for DJ practice and a local touchscreen controller. It works on phones, tablets, Surface devices, and desktop browsers. It is not part of **ZERO 2 HERO**, does not require an account, and does not contain MIDI mappings, audio routing, or DJ-software internals.
+CueCraft is an independent browser/PWA for DJ practice and a local touchscreen controller. It works on phones, tablets, Surface devices, and desktop browsers. ZERO 2 HERO is the main progression product; CueCraft is its DJ-focused spinoff. Local use requires no account.
+
+## Set Planner + Transition Lab
+
+Open **Set Planner + Transition Lab** from Home. Add local audio (supported MP3/WAV/etc.) or try two generated practice beats. Audio is stored in this browser's IndexedDB; plan metadata and recipes are stored locally. Browser storage can be cleared or evicted, so keep your source audio and use **Export plan** for a JSON backup of metadata (audio is not included).
+
+Name your set, choose a target duration, enter BPM/key and optional sections, reorder songs, and move IN/OUT sliders anywhere within the audio. No minimum play percentage is enforced. Grids are estimates from manually entered BPM, anchored at 0:00; they are not detected beat grids.
+
+Open the transition between adjacent songs. Select overlap bars, volume behavior, center/gradual bass swap, and an outgoing high-pass or low-pass filter. **Hear it** previews the actual selected audio with Web Audio gain/EQ/filter automation; Stop interrupts playback. Optional tempo matching changes incoming playback rate and pitch; it does not perform analysis, phase alignment, or pitch-preserving time stretch. Set duration is an estimate from selected sections minus overlap, without tempo adjustment.
+
+Save recipes with IN/OUT snapshots, settings, explanations, and practice status. **What just happened?** explains the chosen automation, and the manual steps describe how to attempt it on DJ gear. Instructions are generic, not a tested controller-specific walkthrough.
+
+**Mystery Transition** uses generated practice beats for fade, bass swap, filter, and hard-cut questions. You can replay and receive teaching feedback after guessing. Multi-technique questions, Rebuild It scoring, cue/loop planning, and device-specific walkthroughs are future extensions.
+
+The lab previews audio locally; controller mode still only sends commands. Offline use requires visiting once over HTTPS or localhost so the service worker can download the app. Audio saved to this browser can then be used offline. LAN HTTP is suitable for local controls but does not enable service-worker installation on most mobile browsers.
 
 ## What works now
 
@@ -42,7 +56,7 @@ Then open `http://localhost:8080`. A real local bridge is still required to pair
 ## Validate
 
 ```powershell
-node --test test/protocol.test.mjs
+node --test test/*.test.mjs
 node --check app.js
 ```
 

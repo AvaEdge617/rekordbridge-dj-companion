@@ -8,6 +8,7 @@
     <title>CueCraft — DJ practice and controller</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./lab.css" />
   </head>
   <body>
     <main class="app-shell">
@@ -17,7 +18,7 @@
       </header>
       <section id="home" class="home-view">
         <p class="eyebrow">Cue with confidence · no Sync</p><h1>Learn to cue.<br /><em>Make clean transitions.</em></h1><p class="intro">Short, calm practice challenges for controller, CDJ, vinyl, or touch. Learn the core skills that make every mix work.</p>
-        <div class="hero-actions"><button id="start-practice" class="button button-main">Start practicing</button><button id="open-pairing" class="button button-quiet">Pair local controller</button></div>
+        <div class="hero-actions"><button id="open-lab" class="button button-main">Set Planner + Transition Lab</button><button id="start-practice" class="button button-quiet">Practice basics</button><button id="open-pairing" class="button button-quiet">Pair local controller</button></div>
         <section class="now-card" aria-labelledby="next-lesson-title"><div class="lesson-number">03</div><div><p class="eyebrow gold">Suggested next</p><h2 id="next-lesson-title">Beatmatch with tempo</h2><p>Match two tracks by ear. Use tempo and nudge—never Sync.</p></div><button class="button button-main launch-lesson" data-lesson="beatmatch">Practice · 12 min</button></section>
         <section class="skills" aria-label="Choose a DJ skill"><button class="skill blue launch-lesson" data-lesson="prepare"><span>01</span><strong>Prepare</strong><small>Load tracks, memory cues, hot cues</small></button><button class="skill teal launch-lesson" data-lesson="listen"><span>02</span><strong>Listen</strong><small>Headphones, master cue, phrasing</small></button><button class="skill gold launch-lesson" data-lesson="beatmatch"><span>03</span><strong>Mix</strong><small>Tempo, jog, faders, EQ</small></button><button class="skill pink launch-lesson" data-lesson="perform"><span>04</span><strong>Perform</strong><small>Transitions, loops, optional FX</small></button></section>
       </section>
@@ -34,8 +35,30 @@
         <form id="pairing-form" class="pairing-card"><label>Bridge address <input id="bridge-address" inputmode="url" autocomplete="url" placeholder="ws://192.168.1.20:8765/cuecraft" required /></label><label>Temporary session code <input id="session-code" inputmode="text" autocomplete="one-time-code" maxlength="12" placeholder="ABC123" required /></label><button class="button button-main" type="submit">Pair CueCraft controller</button><button id="disconnect-button" class="button button-quiet" type="button">Disconnect</button><p id="pairing-note" class="muted">CueCraft identifies itself to the bridge as a touchscreen controller. No account is needed.</p></form>
         <section class="setup-card"><p class="eyebrow gold">What pairs</p><h2>Commands, not music.</h2><p class="muted">CueCraft sends versioned play, cue, tempo, jog, and crossfader commands over your local network. The bridge chooses how to use them. CueCraft never handles audio routing, MIDI ports, or controller mappings.</p></section>
       </section>
+      <section id="lab-view" class="lab-view" hidden>
+        <button id="leave-lab" class="back-button">← Home</button>
+        <p class="eyebrow teal">Experiment → Hear → Understand → Practice</p>
+        <h1>Build it by ear.</h1>
+        <p class="intro">Choose where your songs meet. Hear the change, then learn the moves. Every IN and OUT point is yours.</p>
+        <div class="planner-meta panel"><label>Set name <input id="set-name" value="My first set" /></label><label>Target length <input id="set-target" value="25:00" placeholder="25:00" /></label><strong id="set-total" aria-live="polite">0:00 / 25:00</strong></div>
+        <div class="import-row"><label class="button button-main file-button">Add your audio <input id="audio-files" type="file" accept="audio/*" multiple /></label><button id="add-demo" class="button button-quiet">Try practice tracks</button><button id="export-set" class="button button-quiet">Export plan</button></div>
+        <p id="lab-message" class="muted" role="status">Audio and plans stay on this device. Practice tracks are generated beats, so you can try the lab immediately.</p>
+        <div id="track-list" class="track-list"></div>
+        <p id="section-summary" class="muted"></p>
+        <section id="transition-editor" class="panel transition-editor" hidden>
+          <p class="eyebrow pink">Transition Lab</p><h2 id="pair-title"></h2>
+          <div id="pair-waveforms"></div>
+          <div class="lab-controls"><label>Overlap length (bars)<input id="overlap-bars" type="number" min="0" max="64" step="0.25" value="4" /></label><label>Volume<select id="volume-mode"><option value="fade">Fade</option><option value="overlap">Overlap</option><option value="cut">Quick cut</option></select></label><label>Bass / LOW EQ<select id="eq-mode"><option value="none">Keep both basslines</option><option value="center">Center bass swap</option><option value="gradual">Gradual bass swap</option></select></label><label>Filter on outgoing song<select id="filter-mode"><option value="none">None</option><option value="highpass">Remove bass · high-pass</option><option value="lowpass">Remove highs · low-pass</option></select></label><label class="check-row"><input id="preview-beatmatch" type="checkbox" /> Match tempo for this preview</label></div>
+          <p id="transition-warning" class="muted"></p>
+          <div class="lab-actions"><button id="hear-transition" class="button button-main">▶ Hear it</button><button id="stop-preview" class="button button-quiet">Stop</button><button id="save-recipe" class="button button-quiet">Save recipe</button></div>
+          <div class="explanation"><h3>What just happened?</h3><div id="automation-view"></div><ol id="transition-explanation"></ol><h3>Try it on your controller</h3><ol id="manual-steps"></ol></div>
+        </section>
+        <section class="panel recipes-panel"><h2>Your saved recipes</h2><div id="recipe-list"></div></section>
+        <section class="panel mystery-panel"><p class="eyebrow teal">Ear training</p><h2>Mystery Transition</h2><p class="muted">Listen to the practice beats without seeing the recipe. What changed most?</p><div class="lab-actions"><button id="mystery-new" class="button button-main">New mystery · Hear it</button><button id="mystery-replay" class="button button-quiet" disabled>Replay</button></div><div id="mystery-answers" class="lab-actions" hidden><button data-guess="fade" class="button button-quiet">Fade</button><button data-guess="bass" class="button button-quiet">Bass swap</button><button data-guess="filter" class="button button-quiet">Filter</button><button data-guess="cut" class="button button-quiet">Hard cut</button></div><p id="mystery-result" role="status"></p><div id="mystery-reveal"></div></section>
+      </section>
       <footer><span id="progress-summary">0 practices complete</span><span>Downloaded lessons and touch practice work offline.</span></footer>
     </main>
     <script type="module" src="./app.js"></script>
+    <script type="module" src="./lab.js"></script>
   </body>
 </html>

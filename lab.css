@@ -1,0 +1,22 @@
+.lab-view { padding-top:48px; }
+.panel { padding:24px; border:1px solid #354156; border-radius:16px; background:#1b202b; margin:20px 0; }
+.planner-meta,.track-fields,.marker-fields,.lab-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.planner-meta { grid-template-columns:2fr 1fr 1.5fr; align-items:center; }
+.lab-view label { display:grid; gap:8px; font-size:13px; color:#c7ccd6; }
+.lab-view input,.lab-view select { width:100%; padding:10px; color:#f7f7fb; background:#111923; border:1px solid #46536a; border-radius:8px; font:inherit; }
+.lab-view input[type=range] { padding:6px 0; accent-color:#57d5c1; }
+.lab-view .check-row { display:flex; }.lab-view input[type=checkbox] { width:auto; }
+.import-row,.lab-actions,.track-heading { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.track-heading { justify-content:space-between; margin-bottom:18px; }
+.track-fields { grid-template-columns:2fr 1fr 1fr 1fr; }
+.marker-fields { margin:16px 0; }.waveform-wrap { margin-top:18px; }.waveform-wrap canvas { width:100%; height:110px; border-radius:8px; }
+.transition-link { display:block; margin:0 auto; padding:15px 22px; border:1px solid #76669f; border-radius:12px; color:#ddcaff; background:#28213a; }
+.file-button { position:relative; overflow:hidden; display:inline-block!important; color:#211b0f!important; font-size:16px!important; }
+.file-button input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.transition-editor { border-color:#76669f; }.transition-editor h2 { margin-bottom:24px; }
+.explanation { margin-top:24px; padding:18px; border-radius:12px; background:#141b26; }.explanation li { margin:8px 0; }
+.recipe-card { padding:18px 0; border-top:1px solid #354156; }.recipe-card .button,.recipe-card select { margin:6px 8px 6px 0; }.recipe-card select { width:auto; }
+.mystery-panel { border-color:#366b63; }.empty-state { text-align:center; padding:35px; color:#afb7c6; }
+[hidden] { display:none!important; }
+@media(max-width:720px) { .planner-meta,.track-fields,.marker-fields,.lab-controls { grid-template-columns:1fr 1fr; }.planner-meta strong { grid-column:1/-1; }.panel { padding:18px; }.hero-actions { flex-wrap:wrap; }.lab-view h1 { letter-spacing:-1.5px; } }
+@media(max-width:420px) { .lab-controls,.track-fields { grid-template-columns:1fr; }.marker-fields { gap:10px; } }

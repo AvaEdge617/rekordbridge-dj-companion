@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { automation, defaults, describe, range, seconds, setDuration, timing } from '../lab-model.js';
+const a = { id: 'a', name: 'A', in: 137, out: 141, duration: 200, bpm: 120 };
+const b = { id: 'b', name: 'B', in: 0, out: 60, duration: 200, bpm: 120 };
+test('a four second excerpt is allowed and overlap stays within its bounds', () => { assert.equal(range(a), 4); assert.equal(timing(a, b, defaults()).overlap, 4); });
+test('set time subtracts actual overlap, not requested overlap', () => { assert.equal(setDuration([a, b], {}), 60); });
+test('tempo preview respects incoming available audio at playback rate', () => { const t = timing({ ...a, in: 0, out: 60, bpm: 168 }, { ...b, out: 2, bpm: 140 }, { ...defaults(), beatmatch: true }); assert.equal(t.rate, 1.2); assert.ok(Math.abs(t.overlap - 2 / 1.2) < .00001); });
+test('fade endpoints and center bass handoff differ audibly in automation', () => { const s = { ...defaults(), eq: 'center' }; assert.equal(automation(s, 0).gainB, 0); assert.equal(automation(s, 1).gainA, 0); assert.equal(automation(s, .49).bassB, -24); assert.equal(automation(s, .5).bassA, -24); assert.equal(automation(s, .5).bassB, 0); });
+test('hard cut switches both volumes at the midpoint', () => { const s = { ...defaults(), volume: 'cut' }; assert.equal(automation(s, .49).gainA, 1); assert.equal(automation(s, .5).gainA, 0); assert.equal(automation(s, .5).gainB, 1); });
+test('filters remove the described end of the spectrum', () => { assert.equal(automation({ ...defaults(), filter: 'highpass' }, 1).filter, 2000); assert.ok(Math.abs(automation({ ...defaults(), filter: 'lowpass' }, 1).filter - 300) < .001); });
+test('time entry supports brief sections and rejects malformed time', () => { assert.equal(seconds('2:17'), 137); assert.equal(seconds('0:04'), 4); assert.ok(Number.isNaN(seconds('oops'))); });
+test('explanation includes the real chosen markers and pitch limitation', () => { const text = describe(a, b, { ...defaults(), beatmatch: true }).join(' '); assert.match(text, /2:21/); assert.match(text, /changes pitch/); });
