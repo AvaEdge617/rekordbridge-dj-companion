@@ -29,7 +29,7 @@ pnpm test
 pnpm run check
 ```
 
-Current result: 13 tests pass and all checked JavaScript files parse.
+Updated source check: 29 CueCraft tests pass and all checked JavaScript files parse. Run the checks yourself rather than relying on this count.
 
 ## Fixed since the previous Grok report
 
@@ -49,6 +49,6 @@ Current result: 13 tests pass and all checked JavaScript files parse.
 
 ## Do not claim as complete yet
 
-- Live CueCraft-to-RekordBridge compatibility is not verified. CueCraft uses the `cuecraft.*` protocol; the Windows host adapter must translate it to RekordBridge's normalized command gateway.
+- The Windows source adapter now accepts `cuecraft.*`. Real loopback socket tests use the actual JavaScript protocol and capture MIDI output; actual browser-to-Rekordbox behavior remains unverified. Run `python -m unittest discover -s . -v` from the parent RekordBridge folder as well.
 - Rekordbox virtual MIDI visibility and physical-controller behavior require a real Rekordbox and hardware session.
 - Do not claim audio routing changes. CueCraft only supplies control commands and local audio previews.

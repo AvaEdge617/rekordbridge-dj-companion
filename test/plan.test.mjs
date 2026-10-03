@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { baseName, orphanIds, relinkCandidates, validatePlan } from '../lab-model.js';
+const good = { name: 'Set', target: 900, tracks: [{ id: 'a', name: 'Song A', duration: 200, in: 10, out: 150, bpm: 120, key: '8A', section: 'Peak', peaks: [0.1] }], transitions: { 'a:b': { bars: 4 } }, recipes: [{ id: 'r1', name: 'A → B' }] };
+test('a valid export imports with its markers, settings and recipes', () => { const plan = validatePlan(good); assert.equal(plan.tracks[0].in, 10); assert.equal(plan.tracks[0].out, 150); assert.equal(plan.recipes.length, 1); assert.deepEqual(plan.transitions, good.transitions); });
+test('files that are not set exports are rejected', () => { for (const bad of [null, [], {}, { tracks: 'x', transitions: {}, recipes: [] }, { tracks: [], transitions: [], recipes: [] }]) assert.throws(() => validatePlan(bad), /not a CueCraft set export/); });
+test('a song without an id, name, or length is rejected with its position', () => { assert.throws(() => validatePlan({ ...good, tracks: [{ id: 'z', name: 'ghost' }] }), /Song 1 .*missing/); });
+test('out-of-range IN/OUT points are clamped and IN never passes OUT', () => { const t = validatePlan({ ...good, tracks: [{ id: 'a', name: 'A', duration: 60, in: 90, out: 5 }] }).tracks[0]; assert.equal(t.in, 60); assert.equal(t.out, 60); });
+test('duplicate song ids are rejected', () => { assert.throws(() => validatePlan({ ...good, tracks: [good.tracks[0], good.tracks[0]] }), /same song id/); });
+test('re-added audio matches an imported song by file name, never a practice beat', () => { const tracks = [{ id: 'a', name: 'Wedding Day' }, { id: 'd', name: 'Wedding Day', demo: 0 }, { id: 'b', name: 'Other' }]; assert.deepEqual(relinkCandidates(tracks, 'Wedding Day.mp3').map(t => t.id), ['a']); assert.equal(baseName('My.Song.v2.wav'), 'My.Song.v2'); });
+test('stored audio no song refers to is reported as orphaned', () => { assert.deepEqual(orphanIds(['a', 'b', 'old', 'crash'], [{ id: 'a' }], [{ id: 'b' }]), ['old', 'crash']); assert.deepEqual(orphanIds(['a'], [], []), ['a']); assert.deepEqual(orphanIds([], [{ id: 'a' }]), []); });
+test('file names are trimmed and still relink to names saved with a trailing space', () => { assert.equal(baseName('SAINt JHN - Wedding Day .mp3'), 'SAINt JHN - Wedding Day'); assert.deepEqual(relinkCandidates([{ id: 'w', name: 'SAINt JHN - Wedding Day ' }], 'SAINt JHN - Wedding Day .mp3').map(t => t.id), ['w']); });

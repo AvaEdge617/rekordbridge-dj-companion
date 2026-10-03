@@ -16,3 +16,4 @@ export async function readFile(id) {
   return new Promise((resolve, reject) => { const request = db.transaction('files').objectStore('files').get(id); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
 }
 export async function removeFile(id) { const db = await open(); db.transaction('files', 'readwrite').objectStore('files').delete(id); }
+export async function listIds() { const db = await open(); return new Promise((resolve, reject) => { const request = db.transaction('files').objectStore('files').getAllKeys(); request.onsuccess = () => resolve(request.result.map(String)); request.onerror = () => reject(request.error); }); }

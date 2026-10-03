@@ -1,6 +1,6 @@
-import { automation, defaults, describe, range, seconds, setDuration, time, timing } from './lab-model.js';
+import { automation, baseName, defaults, describe, orphanIds, range, relinkCandidates, retainOnly, seconds, setDuration, time, timing, validatePlan } from './lab-model.js';
 import { PreviewAudio } from './lab-audio.js';
-import { readFile, removeFile, storeFile } from './lab-storage.js';
+import { listIds, readFile, removeFile, storeFile } from './lab-storage.js';
 
 const $ = id => document.getElementById(id), audio = new PreviewAudio();
 let saved;
@@ -51,14 +51,14 @@ function renderTracks() {
     card.append(heading, details, waveform(track));
     const markers = el('div', undefined, 'marker-fields');
     for (const kind of ['in', 'out']) {
-      const update = value => { const parsed = Number(value); track[kind] = Math.max(0, Math.min(track.duration, parsed)); if (track.in > track.out) track[kind === 'in' ? 'out' : 'in'] = track[kind]; save(); renderTracks(); refreshEditor(); };
+      const update = value => { const parsed = Number(value); track[kind] = Math.max(0, Math.min(track.duration, parsed)); let crossed = false; if (track.in > track.out) { track[kind === 'in' ? 'out' : 'in'] = track[kind]; crossed = true; } save(); renderTracks(); refreshEditor(); if (crossed) message(`${kind === 'in' ? 'OUT' : 'IN'} moved to ${time(track[kind])} so IN stays before OUT. ${track.name} now plays for 0:00. Move ${kind === 'in' ? 'OUT later' : 'IN earlier'} to give it length.`); };
       markers.append(input(`${kind.toUpperCase()} · minutes:seconds`, time(track[kind]), field => { const value = seconds(field.value); if (Number.isFinite(value)) update(value); else { field.value = time(track[kind]); message('Use minutes:seconds, such as 1:43.'); } }));
       const wrap = el('label', `${kind.toUpperCase()} point`), slider = document.createElement('input'); slider.type = 'range'; slider.min = '0'; slider.max = String(track.duration); slider.step = '.01'; slider.value = String(track[kind]); slider.setAttribute('aria-label', `${track.name} ${kind.toUpperCase()} point`); slider.addEventListener('change', () => update(slider.value)); wrap.append(slider); markers.append(wrap);
     }
     const actions = el('div', undefined, 'lab-actions');
-    const move = direction => { const other = index + direction; if (other < 0 || other >= plan.tracks.length) return; [plan.tracks[index], plan.tracks[other]] = [plan.tracks[other], plan.tracks[index]]; selected = null; audio.stop(); $('transition-editor').hidden = true; save(); renderTracks(); };
+    const move = direction => { const other = index + direction; if (other < 0 || other >= plan.tracks.length) return; [plan.tracks[index], plan.tracks[other]] = [plan.tracks[other], plan.tracks[index]]; selected = null; audio.stop(); retainOnly(buffers); $('transition-editor').hidden = true; save(); renderTracks(); };
     const up = button('↑ Move up', () => move(-1)), down = button('↓ Move down', () => move(1)); up.disabled = index === 0; down.disabled = index === plan.tracks.length - 1;
-    actions.append(up, down, button('Remove', () => { plan.tracks.splice(index, 1); buffers.delete(track.id); removeFile(track.id).catch(() => {}); selected = null; audio.stop(); $('transition-editor').hidden = true; save(); renderTracks(); }));
+    actions.append(up, down, button('Remove', () => { plan.tracks.splice(index, 1); removeFile(track.id).catch(() => {}); selected = null; audio.stop(); retainOnly(buffers); $('transition-editor').hidden = true; save(); renderTracks(); }));
     card.append(markers, actions); $('track-list').append(card);
     if (index < plan.tracks.length - 1) $('track-list').append(button(`↓ Transition · ${track.name} → ${plan.tracks[index + 1].name}`, () => openTransition(track.id, plan.tracks[index + 1].id), 'transition-link'));
   });
@@ -79,7 +79,7 @@ function automationGraph(s) {
 function pair() { return selected && selected.map(id => plan.tracks.find(track => track.id === id)); }
 function settings() { return { bars: Math.max(0, Math.min(64, Number($('overlap-bars').value) || 0)), volume: $('volume-mode').value, eq: $('eq-mode').value, filter: $('filter-mode').value, beatmatch: $('preview-beatmatch').checked }; }
 function openTransition(a, b) {
-  audio.stop(); selected = [a, b]; const s = plan.transitions[`${a}:${b}`] || defaults();
+  previewToken++; audio.stop(); selected = [a, b]; retainOnly(buffers, selected); const s = plan.transitions[`${a}:${b}`] || defaults();
   $('overlap-bars').value = s.bars; $('volume-mode').value = s.volume; $('eq-mode').value = s.eq; $('filter-mode').value = s.filter; $('preview-beatmatch').checked = s.beatmatch;
   $('transition-editor').hidden = false; refreshEditor(); $('transition-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -110,16 +110,33 @@ async function loadBuffer(track) {
 }
 async function hear() {
   const token = ++previewToken;
-  try { const tracks = pair(); if (!tracks) return; const [a, b] = tracks; message('Loading your preview…'); const [bufferA, bufferB] = await Promise.all([loadBuffer(a), loadBuffer(b)]); if (token !== previewToken) return; await audio.preview({ ...a, buffer: bufferA }, { ...b, buffer: bufferB }, settings(), () => message('Preview finished. Change a setting and compare by ear.')); message('Playing the selected transition.'); renderTracks(); refreshEditor(); }
+  try { const tracks = pair(); if (!tracks) return; const [a, b] = tracks; retainOnly(buffers, [a.id, b.id]); message('Loading your preview…'); const [bufferA, bufferB] = await Promise.all([loadBuffer(a), loadBuffer(b)]); if (token !== previewToken) { retainOnly(buffers, selected || []); return; } await audio.preview({ ...a, buffer: bufferA }, { ...b, buffer: bufferB }, settings(), () => message('Preview finished. Change a setting and compare by ear.')); message('Playing the selected transition.'); renderTracks(); refreshEditor(); }
   catch (error) { message(error.message); }
 }
+let importing = false;
+async function pruneOrphans() { if (importing) return 0; try { let stored = []; try { stored = JSON.parse(localStorage.getItem('cuecraft-set-v1') || 'null')?.tracks || []; } catch { stored = []; } const orphans = orphanIds(await listIds(), plan.tracks, stored); if (importing) return 0; for (const id of orphans) await removeFile(id); return orphans.length; } catch { return 0; } }
 async function importFiles(files) {
-  let failures = 0;
+  const failed = [], relinked = []; importing = true;
   for (const file of files) {
-    try { message(`Reading ${file.name}…`); const buffer = await audio.decode(file), id = crypto.randomUUID(); await storeFile(id, file); buffers.set(id, buffer); plan.tracks.push({ id, name: file.name.replace(/\.[^.]+$/, ''), duration: buffer.duration, in: 0, out: buffer.duration, bpm: 0, key: '', section: 'Opening', peaks: waveformPeaks(buffer) }); }
-    catch { failures++; }
+    try {
+      message(`Reading ${file.name}…`); const buffer = await audio.decode(file);
+      let target = null;
+      for (const candidate of relinkCandidates(plan.tracks, file.name)) { if (!buffers.has(candidate.id) && !(await readFile(candidate.id).catch(() => null))) { target = candidate; break; } }
+      if (target) {
+        await storeFile(target.id, file);
+        target.duration = buffer.duration; target.in = Math.min(target.in, buffer.duration); target.out = Math.max(target.in, Math.min(target.out, buffer.duration)); target.peaks = waveformPeaks(buffer);
+        relinked.push(target.name); continue;
+      }
+      const id = crypto.randomUUID(); await storeFile(id, file);
+      plan.tracks.push({ id, name: baseName(file.name), duration: buffer.duration, in: 0, out: buffer.duration, bpm: 0, key: '', section: 'Opening', peaks: waveformPeaks(buffer) });
+    }
+    catch { failed.push(file.name); }
   }
-  renderTracks(); message(failures ? `${failures} file(s) could not be imported. Try a supported MP3 or WAV and check available device storage. Other imported audio is saved.` : 'Audio saved on this device. Enter BPM, choose IN/OUT, then open a transition.');
+  importing = false; save(); renderTracks(); refreshEditor();
+  const notes = [];
+  if (relinked.length) notes.push(`Reconnected audio for ${relinked.join(', ')}; IN/OUT points were kept.`);
+  if (failed.length) notes.push(`Could not import ${failed.join(', ')}. Try a supported MP3 or WAV and check available device storage. Other audio is saved.`);
+  message(notes.join(' ') || 'Audio saved on this device. Enter BPM, choose IN/OUT, then open a transition.');
 }
 async function demo() {
   message('Generating two practice beats…');
@@ -146,7 +163,7 @@ async function playMystery() {
   catch (error) { message(error.message); }
 }
 $('open-lab').addEventListener('click', () => { for (const id of ['home', 'lesson-view', 'pairing-view']) $(id).hidden = true; $('lab-view').hidden = false; window.scrollTo(0, 0); });
-$('leave-lab').addEventListener('click', () => { previewToken++; audio.stop(); $('lab-view').hidden = true; $('home').hidden = false; });
+$('leave-lab').addEventListener('click', () => { previewToken++; audio.stop(); retainOnly(buffers); $('lab-view').hidden = true; $('home').hidden = false; });
 $('set-name').value = plan.name; $('set-target').value = time(plan.target);
 $('set-name').addEventListener('change', () => { plan.name = $('set-name').value; save(); });
 $('set-target').addEventListener('change', () => { const value = seconds($('set-target').value); if (Number.isFinite(value)) plan.target = value; else $('set-target').value = time(plan.target); save(); });
@@ -156,7 +173,7 @@ for (const id of ['overlap-bars', 'volume-mode', 'eq-mode', 'filter-mode', 'prev
 $('hear-transition').addEventListener('click', hear); $('stop-preview').addEventListener('click', () => { previewToken++; audio.stop(); message('Preview stopped.'); });
 $('save-recipe').addEventListener('click', () => { const tracks = pair(); if (!tracks) return; plan.recipes.push({ id: crypto.randomUUID(), pair: [...selected], name: `${tracks[0].name} → ${tracks[1].name}`, settings: settings(), markers: tracks.map(t => ({ in: t.in, out: t.out })), instructions: describe(...tracks, settings()), status: 'Not practiced' }); save(); renderRecipes(); message('Recipe saved. Mark your practice progress when you are ready.'); });
 $('export-set').addEventListener('click', () => { const url = URL.createObjectURL(new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' })), link = document.createElement('a'); link.href = url; link.download = 'cuecraft-set.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); });
-$('import-set').addEventListener('change', async event => { const file = event.target.files[0]; event.target.value = ''; if (!file) return; try { const imported = JSON.parse(await file.text()); if (!imported || !Array.isArray(imported.tracks) || typeof imported.transitions !== 'object' || !Array.isArray(imported.recipes)) throw new Error('That file is not a CueCraft set export.'); Object.assign(plan, imported); selected = null; save(); $('set-name').value = plan.name || 'My first set'; $('set-target').value = time(plan.target); renderTracks(); renderRecipes(); message('Plan imported. Audio files stay on the original device; add them again here to preview.'); } catch (error) { message(error.message); } });
+$('import-set').addEventListener('change', async event => { const file = event.target.files[0]; event.target.value = ''; if (!file) return; try { let raw; try { raw = JSON.parse(await file.text()); } catch { throw new Error('That file is not a CueCraft set export (it is not valid JSON). Choose a cuecraft-set.json file.'); } const imported = validatePlan(raw); previewToken++; audio.stop(); retainOnly(buffers); for (const key of Object.keys(plan)) delete plan[key]; Object.assign(plan, imported); selected = null; $('transition-editor').hidden = true; save(); $('set-name').value = plan.name; $('set-target').value = time(plan.target); renderTracks(); renderRecipes(); const removed = await pruneOrphans(); message(`Plan imported: ${plan.tracks.length} song(s), ${plan.recipes.length} recipe(s). Songs whose audio is not on this device can be reconnected with Add your audio, using the same file name.${removed ? ` Removed ${removed} stored audio file(s) that the previous plan used and this plan does not.` : ''}`); } catch (error) { message(error.message); } });
 $('mystery-new').addEventListener('click', () => { previewToken++; const choices = ['fade', 'bass', 'filter', 'cut'], answer = choices[Math.floor(Math.random() * choices.length)]; mystery = { answer, settings: { ...defaults(), bars: 2, volume: answer === 'fade' ? 'fade' : answer === 'cut' ? 'cut' : 'overlap', eq: answer === 'bass' ? 'center' : 'none', filter: answer === 'filter' ? 'highpass' : 'none' } }; $('mystery-result').textContent = 'Listen first. Which change did you hear?'; $('mystery-reveal').replaceChildren(); $('mystery-answers').hidden = false; $('mystery-replay').disabled = false; playMystery(); });
 $('mystery-replay').addEventListener('click', () => { if (mystery) playMystery(); });
 document.querySelectorAll('[data-guess]').forEach(item => item.addEventListener('click', () => { if (!mystery) return; const clue = { fade: 'The volume of A fell while B rose. Listen for the gradual change in loudness.', bass: 'LOW EQ changed in the middle. Listen for the low-frequency energy moving from A to B.', filter: 'A high-pass filter removed bass from A. Listen for A becoming thinner before it leaves.', cut: 'The channel volumes switched suddenly in the middle. Listen for an immediate handoff.' }; $('mystery-result').textContent = `${item.dataset.guess === mystery.answer ? 'You heard it!' : 'Good chance to compare.'} The answer is ${mystery.answer === 'bass' ? 'bass swap' : mystery.answer}. ${clue[mystery.answer]} Replay and listen for that change.`; $('mystery-reveal').replaceChildren(automationGraph(mystery.settings)); }));
