@@ -8,7 +8,7 @@ Use the development source, not an older ZIP. Do not upload songs, credentials, 
 2. From its `zero-to-hero` folder, run `pnpm test` and `pnpm run check`.
 3. Serve CueCraft from that folder using `python -m http.server 8765 --bind 127.0.0.1` and open `http://127.0.0.1:8765`.
 4. Run `python mapper_app.py` in the RekordBridge folder. Select the existing virtual MIDI output. Do not install drivers or alter existing mappings just for this test.
-5. Choose **Start CueCraft pairing**. Enter its WebSocket address and room code in CueCraft. Expect **Controller paired**.
+5. Choose **Start CueCraft pairing**. The updated Windows source opens a QR and fallback URL. Scan from a phone on trusted same-network Wi-Fi, or enter the WebSocket address and room code in desktop CueCraft. Expect **Controller paired**. The QR phone flow is implemented but still needs a physical scan test; old packaged builds lack it.
 6. Use Rekordbox with practice tracks and the existing matching MIDI mapping. A physical controller is optional. Check its license permits MIDI control.
 
 ## Observe the actual result
@@ -38,4 +38,4 @@ For installation/offline lessons, use a verified HTTPS deployment or localhost o
 
 For each check: **Pass / Fail / Blocked**, exact steps, expected versus observed result, error text, and a screenshot if useful. Redact codes/secrets. Do not call the build performance-ready based only on automated tests.
 
-Not implemented here: signed installer/updates, built-in virtual MIDI, rendered pairing QR, authenticated ZERO 2 HERO sync or funded NIM rewards.
+Not implemented here: signed installer/updates, built-in virtual MIDI, encrypted mobile transport, authenticated ZERO 2 HERO sync or funded NIM rewards. QR generation and restricted local-page hosting now exist in the Windows development source.

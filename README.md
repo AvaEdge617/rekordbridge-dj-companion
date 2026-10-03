@@ -21,6 +21,7 @@ The lab previews audio locally; controller mode still only sends commands. Offli
 - Downloadable/offline lesson cards and private device-local practice progress.
 - Touchscreen controls for Deck 1/2 play, cue, tempo, jog, and crossfader.
 - Local WebSocket session pairing by a temporary short code. A bridge can place the address and code in a QR URL, for example: `https://host/cuecraft/?bridge=ws%3A%2F%2F192.168.1.20%3A8765%2Fcuecraft&code=ABC123`.
+- Updated RekordBridge Windows source renders a local QR and fallback link, serving only CueCraft app assets over LAN HTTP. This avoids an HTTPS-to-plain-WebSocket mismatch for local control, but does not enable phone PWA installation/offline caching. Actual phone scanning and firewall reachability still require device verification.
 - Coalesced high-frequency tempo, jog, and crossfader updates, connection/latency feedback, automatic reconnect, and immediate visual hold-state clearing on disconnect.
 - Controller screen lock, which prevents page scrolling, text selection, zoom gestures, and accidental navigation while retaining the controls. Unlock restores normal use.
 - An optional `cuecraft:progress` browser event for a user-selected sync service. It is not connected to ZERO 2 HERO and is never required for local practice.
