@@ -8,7 +8,7 @@ Please independently test CueCraft’s Set Planner, Transition Lab, and Mystery 
 - Repository: https://github.com/AvaEdge617/rekordbridge-dj-companion
 - Pull request: https://github.com/AvaEdge617/rekordbridge-dj-companion/pull/1
 - Branch: `codex/cuecraft-local-controller`
-- Feature commit: `4134c85cb453e0ac014c554c38b7cf319ed71440`
+- Test the latest `codex/cuecraft-local-controller` branch, not only the original feature commit `4134c85cb453e0ac014c554c38b7cf319ed71440`.
 - The repository’s older name is intentional for now. The app should display **CueCraft**.
 - This feature is on the review branch. Do not assume the deployed site or `main` contains it.
 
@@ -178,7 +178,7 @@ From the CueCraft directory:
 node --test test/*.test.mjs
 ```
 
-At the feature commit, 13 tests passed on the developer’s machine. Run them independently and record your result. JavaScript syntax can also be checked with `npm run check` if npm is installed, or `node --check` on each app/lab/protocol/service-worker module.
+The updated branch has 29 passing CueCraft tests, plus 47 tests in the separate Windows source. Run them independently and record your result. JavaScript syntax can also be checked with `pnpm run check`, `npm run check` if npm is installed, or `node --check` on each app/lab/protocol/service-worker module. Follow REMAINING_GAPS_TEST_SHEET.md for the updated QR/MIDI test flow; the unsigned October 3 portable preview also contains that sheet. Physical phone scans, audible quality, and actual Rekordbox response remain unverified.
 
 Passing unit tests do not replace audio, import, persistence, and UI tests. Test only CueCraft; the unrelated ZERO 2 HERO application has a different test setup.
 
