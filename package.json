@@ -1,0 +1,1 @@
+{"private":true,"type":"module","scripts":{"test":"node --test test/*.test.mjs","check":"node --check app.js && node --check protocol.js && node --check lab.js && node --check lab-model.js && node --check lab-audio.js && node --check lab-storage.js && node --check service-worker.js"}}
